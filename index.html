@@ -44,6 +44,8 @@
                         <label>Pay Cycles: <input type="number" name="payCycles" id="paycyclesinput" readonly></label>
                         <label>Total Paid: <input type="number" step="0.01" name="totalPaid" id="totalpaidinput" readonly></label>
                     </div>
+                    <div id="outputDiv">
+                    </div>
                 `;
 
                 // Add event listener for change events
@@ -289,7 +291,8 @@
                 } while (!this.allAccountsPaid);
                 
                 //return histogramData;
-                this.ConsoleVisualization(histogramData)
+                //this.ConsoleVisualization(histogramData)
+                this.DOMTextVisualization(histogramData)
                 this.resetAccounts()
             }
 
@@ -302,6 +305,17 @@
                     console.log(output)
                 })
             }
+            DOMTextVisualization(dataModel) {
+                dataModel.forEach(snapshot => {
+                    let output = ''
+                    snapshot.forEach(acct => {
+                        output+= `${acct.name}:$${acct.balance} | `
+                    })
+
+                    const outputDiv = document.querySelector('#outputDiv')
+                    outputDiv.innerHTML = output
+                })
+            }
         }
         
         // Define the custom element
@@ -310,3 +324,4 @@
     </script>
 </body>
 </html>
+
