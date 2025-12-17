@@ -324,11 +324,11 @@
 
             SetupSampleScenario() {
                 const newAccount = document.createElement('custom-account');
+                this.querySelector('#accountsContainer').appendChild(newAccount);            
                 newAccount.querySelector('#nameinput').value = 'Demo 1'
                 newAccount.querySelector('#startbalanceinput').value = '1000'
                 newAccount.querySelector('#interestrateinput').value = '12'
                 newAccount.querySelector('#paymentinput').value = '100'
-                this.querySelector('#accountsContainer').appendChild(newAccount);            
             }
         }
         
@@ -338,6 +338,7 @@
     </script>
 </body>
 </html>
+
 
 
 
