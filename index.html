@@ -149,6 +149,7 @@
                         <button id="addAccountBtn">Add Account</button>
                         <button id="runSimulationBtn">Run Simulation</button>
                         <button id="ResetBtn">Reset</button>
+                        <button id="SetupDemoBtn">Setup Demo</button>
                     </div>
                     <div id="accountsContainer" style="margin-top: 20px;">
                         <!-- custom-account elements will be added here -->
@@ -175,6 +176,10 @@
 
                     if (event.target.id === 'ResetBtn') {
                         this.resetAccounts();
+                    }
+
+                    if (event.target.id === 'SetupDemoBtn') {
+                        this.SetupSampleScenario();
                     }
                 });
             }
@@ -317,6 +322,15 @@
                 })
             }
         }
+
+        SetupSampleScenario() {
+            const newAccount = document.createElement('custom-account');
+            newAccount.querySelector('#nameinput').value = 'Demo 1'
+            newAccount.querySelector('#startbalanceinput').value = '1000'
+            newAccount.querySelector('#interestrateinput').value = '12'
+            newAccount.querySelector('#paymentinput').value = '100'
+            this.querySelector('#accountsContainer').appendChild(newAccount);            
+        }
         
         // Define the custom element
         customElements.define('custom-account', Account);
@@ -324,4 +338,5 @@
     </script>
 </body>
 </html>
+
 
