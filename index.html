@@ -7,34 +7,29 @@
 </head>
 <body>
     <h1>Repayment Modeler</h1>
-    <debt-manager>
-
-    </debt-manager>
+    <debt-manager> </debt-manager>
     <div id="repayment-visual">
-        <table>
-
-        </table>
+      <table></table>
     </div>
     <script>
-        class Account extends HTMLElement {
+class Account extends HTMLElement {
+  // Initialize class properties
+  startBalance = 0;
+  interestRate = 0;
+  payment = 0;
+  currentBalance = 0;
+  payCycles = 0;
+  totalPaid = 0;
+  paidInFull = false;
+  name = "";
 
-            // Initialize class properties
-            startBalance = 0;
-            interestRate = 0;
-            payment = 0;
-            currentBalance = 0;
-            payCycles = 0;
-            totalPaid = 0;
-            paidInFull = false
-            name = ''
+  constructor() {
+    super();
+  }
 
-            constructor() {
-                super();
-            }
-
-            connectedCallback() {
-                // Create inline input fields
-                this.innerHTML = `
+  connectedCallback() {
+    // Create inline input fields
+    this.innerHTML = `
                     <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
                         <label>Account Name: <input type="text" id="nameinput" placeholder="Enter account name"></label>
                         <label>Start Balance: <input type="number" step="0.01" name="startBalance" id="startbalanceinput" placeholder="$0.00"></label>
@@ -48,89 +43,89 @@
                     </div>
                 `;
 
-                // Add event listener for change events
-                this.addEventListener('change', (event) => {
-                    event.stopPropagation();
-                    
-                    const targetId = event.target.id;
-                    
-                    switch(targetId) {
-                        case 'startbalanceinput':
-                            this.startBalance = parseFloat(event.target.value) || 0;
-                            this.currentBalance = parseFloat(event.target.value) || 0;
-                            break;
-                        case 'interestrateinput':
-                            this.interestRate = parseFloat(event.target.value) / 100 || 0;
-                            break;
-                        case 'paymentinput':
-                            this.payment = parseFloat(event.target.value) || 0;
-                            break;
-                    }
-                    
-                    this.dispatchEvent(new CustomEvent('userInputChanged'));
-                });
-                
-                // Add input listener for name field
-                this.addEventListener('input', (event) => {
-                    if (event.target.id === 'nameinput') {
-                        this.name = event.target.value;
-                    }
-                });
-            }
-//consolidate event handling by creating an event handling method and reusing it.
-            iterate() {
-                if (this.paidInFull) 
-                    return {
-                        "currentBalance": 0,
-                        "remainingPayment": 0
-                    };
+    // Add event listener for change events
+    this.addEventListener("change", (event) => {
+      event.stopPropagation();
 
-                const newBalance = this.currentBalance * (1 + this.interestRate / 12) - this.payment;
-                this.payCycles++;
+      const targetId = event.target.id;
 
-                return this.iterationResults(newBalance);
-            }
+      switch (targetId) {
+        case "startbalanceinput":
+          this.startBalance = parseFloat(event.target.value) || 0;
+          this.currentBalance = parseFloat(event.target.value) || 0;
+          break;
+        case "interestrateinput":
+          this.interestRate = parseFloat(event.target.value) / 100 || 0;
+          break;
+        case "paymentinput":
+          this.payment = parseFloat(event.target.value) || 0;
+          break;
+      }
 
-            
-            makeAdditionalPayment(payment) {
-                const newBalance = this.currentBalance - payment
+      this.dispatchEvent(new CustomEvent("userInputChanged"));
+    });
 
-                return this.iterationResults(newBalance)
-            }
+    // Add input listener for name field
+    this.addEventListener("input", (event) => {
+      if (event.target.id === "nameinput") {
+        this.name = event.target.value;
+      }
+    });
+  }
+  //consolidate event handling by creating an event handling method and reusing it.
+  iterate() {
+    if (this.paidInFull)
+      return {
+        currentBalance: 0,
+        remainingPayment: 0,
+      };
 
-            iterationResults(newBalance) {
-                if (newBalance > 0) {
-                    this.currentBalance = newBalance
-                    this.totalPaid += this.payment
-                    return {"currentBalance": this.currentBalance, "remainingPayment" : 0}
-                } else {
-                    this.paidInFull = true
-                    const paymentRemainder = -1 * newBalance
-                    this.currentBalance = 0
-                    this.totalPaid = this.totalPaid + this.payment - paymentRemainder
-                    return {"currentBalance": 0, "remainingPayment" : paymentRemainder}
-                }
-            }
+    const newBalance =
+      this.currentBalance * (1 + this.interestRate / 12) - this.payment;
+    this.payCycles++;
 
-            reset() {
-                this.currentBalance = this.startBalance
-                this.payCycles = 0
-                this.totalPaid = 0
-                this.paidInFull = false
-            }
-        }
-        
-        class DebtManager extends HTMLElement {
-            rollover = 0;
-            allAccountsPaid = false;
+    return this.iterationResults(newBalance);
+  }
 
-            constructor() {
-                super();
-            }
-            
-            connectedCallback() {
-                // Create template with radio buttons
-                this.innerHTML = `
+  makeAdditionalPayment(payment) {
+    const newBalance = this.currentBalance - payment;
+
+    return this.iterationResults(newBalance);
+  }
+
+  iterationResults(newBalance) {
+    if (newBalance > 0) {
+      this.currentBalance = newBalance;
+      this.totalPaid += this.payment;
+      return { currentBalance: this.currentBalance, remainingPayment: 0 };
+    } else {
+      this.paidInFull = true;
+      const paymentRemainder = -1 * newBalance;
+      this.currentBalance = 0;
+      this.totalPaid = this.totalPaid + this.payment - paymentRemainder;
+      return { currentBalance: 0, remainingPayment: paymentRemainder };
+    }
+  }
+
+  reset() {
+    this.currentBalance = this.startBalance;
+    this.payCycles = 0;
+    this.totalPaid = 0;
+    this.paidInFull = false;
+  }
+}
+
+class DebtManager extends HTMLElement {
+  rollover = 0;
+  allAccountsPaid = false;
+
+  constructor() {
+    super();
+  }
+
+  connectedCallback() {
+    // Create template with radio buttons
+    this.innerHTML = `
                     <div style="display: flex; gap: 15px; align-items: center;">
                         <label style="display: flex; align-items: center; gap: 5px;">
                             <input type="radio" name="paymentStrategy" value="lowestBalance">
@@ -155,189 +150,201 @@
                         <!-- custom-account elements will be added here -->
                     </div>
                 `;
-                
-                // Add click event listener for radio buttons and add account button
-                this.addEventListener('click', (event) => {
-                    event.stopPropagation()
-                    
-                    if (event.target.type === 'radio' && event.target.name === 'paymentStrategy') {
-                        this.sortAccounts(event.target.value);
-                        this.resetAccounts();
-                    }
-                    
-                    if (event.target.id === 'addAccountBtn') {
-                        const newAccount = document.createElement('custom-account');
-                        this.querySelector('#accountsContainer').appendChild(newAccount);
-                    }
-                    
-                    if (event.target.id === 'runSimulationBtn') {
-                        this.RunScenario();
-                    }
 
-                    if (event.target.id === 'ResetBtn') {
-                        this.resetAccounts();
-                    }
+    // Add click event listener for radio buttons and add account button
+    this.addEventListener("click", (event) => {
+      event.stopPropagation();
 
-                    if (event.target.id === 'SetupDemoBtn') {
-                        this.SetupSampleScenario();
-                    }
-                });
-            }
-            
-            get accounts() {
-                return this.querySelector('#accountsContainer').querySelectorAll('custom-account');
-            }
-            
-            iterate() {
-                let paidOffAnAccount = false;
-                let remainingPayment = 0;
-                let results = [];
-                
-                this.accounts.forEach(account => {
-                    let iterateResult = account.iterate();
-                    
-                    if (iterateResult.currentBalance === 0) {
-                        paidOffAnAccount = true;
-                        remainingPayment += iterateResult.remainingPayment;
-                        this.rollover += account.payment;
-                    }
-                    
-                    results.push({
-                        name: account.name || 'Unnamed Account',
-                        balance: iterateResult.currentBalance
-                    });
-                });
-                
-                if (paidOffAnAccount) {
-                    this.handleAdditionalPayments(results, remainingPayment + this.rollover)
-                } 
-                
-                return results;
-            }
-            
-            handleAdditionalPayments(results, additionalPayment) {
-                if (additionalPayment == 0) {
-                    return results;
-                }
+      if (
+        event.target.type === "radio" &&
+        event.target.name === "paymentStrategy"
+      ) {
+        this.sortAccounts(event.target.value);
+        this.resetAccounts();
+      }
 
-                // Find the first account that has a balance
-                const accountsArray = Array.from(this.accounts);
-                const firstAccountWithBalance = accountsArray.find(account => account.currentBalance > 0);
-                
-                // If no account has a balance, return results unchanged
-                if (!firstAccountWithBalance) {
-                    this.allAccountsPaid = true;
-                    return results;
-                }
-                
-                // Make additional payment to the first account with balance
-                const additionalPaymentResult = firstAccountWithBalance.makeAdditionalPayment(additionalPayment);
-                
-                // Find and update the results for this account
-                const accountIndex = results.findIndex(result => 
-                    result.name === (firstAccountWithBalance.name || 'Unnamed Account')
-                );
-                
-                if (accountIndex !== -1) {
-                    results[accountIndex].result = additionalPaymentResult;
-                }
-                
-                if (additionalPaymentResult[0] == 0) {
-                    const remainingPayment = additionalPaymentResult[1]
-                    this.rollover += firstAccountWithBalance.payment
-                    return this.handleAdditionalPayments(results, remainingPayment)
-                } else {
-                    return results;
-                }
-            }
-        
-            sortAccounts(sortOption) {
-                const container = this.querySelector('#accountsContainer');
-                const accountsArray = Array.from(this.accounts);
-                
-                accountsArray.sort((a, b) => {
-                    switch(sortOption) {
-                        case 'lowestBalance':
-                            return a.startBalance - b.startBalance;
-                        case 'highestBalance':
-                            return b.startBalance - a.startBalance;
-                        case 'highestInterest':
-                            return b.interestRate - a.interestRate;
-                        default:
-                            return 0;
-                    }
-                });
-                
-                // Re-append sorted accounts to container
-                accountsArray.forEach(account => {
-                    container.appendChild(account);
-                });
-            }
-            
-            resetAccounts() {
-                this.accounts.forEach(account => {
-                    account.reset();
-                });
-            }
-            
-            RunScenario() {
-                this.allAccountsPaid = false;
-                let histogramData = [];
-                
-                do {
-                    const results = this.iterate();
-                    
-                    // Add results to histogram data model
-                    histogramData.push(results);
+      if (event.target.id === "addAccountBtn") {
+        const newAccount = document.createElement("custom-account");
+        this.querySelector("#accountsContainer").appendChild(newAccount);
+      }
 
-                    // Check if all accounts are paid off
-                    this.allAccountsPaid = Array.from(this.accounts).every(account => account.currentBalance === 0);
-                    
-                } while (!this.allAccountsPaid);
-                
-                //return histogramData;
-                //this.ConsoleVisualization(histogramData)
-                this.DOMTextVisualization(histogramData)
-                this.resetAccounts()
-            }
+      if (event.target.id === "runSimulationBtn") {
+        this.RunScenario();
+      }
 
-            ConsoleVisualization(dataModel) {
-                dataModel.forEach(snapshot => {
-                    let output = ''
-                    snapshot.forEach(acct => {
-                        output+= `${acct.name}:$${acct.balance} | `
-                    })
-                    console.log(output)
-                })
-            }
-            DOMTextVisualization(dataModel) {
-                dataModel.forEach(snapshot => {
-                    let output = ''
-                    snapshot.forEach(acct => {
-                        output+= `${acct.name}:$${acct.balance} | `
-                    })
+      if (event.target.id === "ResetBtn") {
+        this.resetAccounts();
+      }
 
-                    const outputDiv = document.querySelector('#outputDiv')
-                    outputDiv.innerHTML = output
-                })
-            }
+      if (event.target.id === "SetupDemoBtn") {
+        this.SetupSampleScenario();
+      }
+    });
+  }
 
-            SetupSampleScenario() {
-                const newAccount = document.createElement('custom-account');
-                this.querySelector('#accountsContainer').appendChild(newAccount);            
-                newAccount.querySelector('#nameinput').value = 'Demo 1'
-                newAccount.querySelector('#startbalanceinput').value = '1000'
-                newAccount.querySelector('#interestrateinput').value = '12'
-                newAccount.querySelector('#paymentinput').value = '100'
-            }
-        }
-        
-        // Define the custom element
-        customElements.define('custom-account', Account);
-        customElements.define('debt-manager', DebtManager);
+  get accounts() {
+    return this.querySelector("#accountsContainer").querySelectorAll(
+      "custom-account",
+    );
+  }
+
+  iterate() {
+    let paidOffAnAccount = false;
+    let remainingPayment = 0;
+    let results = [];
+
+    this.accounts.forEach((account) => {
+      let iterateResult = account.iterate();
+
+      if (iterateResult.currentBalance === 0) {
+        paidOffAnAccount = true;
+        remainingPayment += iterateResult.remainingPayment;
+        this.rollover += account.payment;
+      }
+
+      results.push({
+        name: account.name || "Unnamed Account",
+        balance: iterateResult.currentBalance,
+      });
+    });
+
+    if (paidOffAnAccount) {
+      this.handleAdditionalPayments(results, remainingPayment + this.rollover);
+    }
+
+    return results;
+  }
+
+  handleAdditionalPayments(results, additionalPayment) {
+    if (additionalPayment == 0) {
+      return results;
+    }
+
+    // Find the first account that has a balance
+    const accountsArray = Array.from(this.accounts);
+    const firstAccountWithBalance = accountsArray.find(
+      (account) => account.currentBalance > 0,
+    );
+
+    // If no account has a balance, return results unchanged
+    if (!firstAccountWithBalance) {
+      this.allAccountsPaid = true;
+      return results;
+    }
+
+    // Make additional payment to the first account with balance
+    const additionalPaymentResult =
+      firstAccountWithBalance.makeAdditionalPayment(additionalPayment);
+
+    // Find and update the results for this account
+    const accountIndex = results.findIndex(
+      (result) =>
+        result.name === (firstAccountWithBalance.name || "Unnamed Account"),
+    );
+
+    if (accountIndex !== -1) {
+      results[accountIndex].result = additionalPaymentResult;
+    }
+
+    if (additionalPaymentResult[0] == 0) {
+      const remainingPayment = additionalPaymentResult[1];
+      this.rollover += firstAccountWithBalance.payment;
+      return this.handleAdditionalPayments(results, remainingPayment);
+    } else {
+      return results;
+    }
+  }
+
+  sortAccounts(sortOption) {
+    const container = this.querySelector("#accountsContainer");
+    const accountsArray = Array.from(this.accounts);
+
+    accountsArray.sort((a, b) => {
+      switch (sortOption) {
+        case "lowestBalance":
+          return a.startBalance - b.startBalance;
+        case "highestBalance":
+          return b.startBalance - a.startBalance;
+        case "highestInterest":
+          return b.interestRate - a.interestRate;
+        default:
+          return 0;
+      }
+    });
+
+    // Re-append sorted accounts to container
+    accountsArray.forEach((account) => {
+      container.appendChild(account);
+    });
+  }
+
+  resetAccounts() {
+    this.accounts.forEach((account) => {
+      account.reset();
+    });
+  }
+
+  RunScenario() {
+    this.allAccountsPaid = false;
+    let histogramData = [];
+
+    do {
+      const results = this.iterate();
+
+      // Add results to histogram data model
+      histogramData.push(results);
+
+      // Check if all accounts are paid off
+      this.allAccountsPaid = Array.from(this.accounts).every(
+        (account) => account.currentBalance === 0,
+      );
+    } while (!this.allAccountsPaid);
+
+    //return histogramData;
+    //this.ConsoleVisualization(histogramData)
+    this.DOMTextVisualization(histogramData);
+    this.resetAccounts();
+  }
+
+  ConsoleVisualization(dataModel) {
+    dataModel.forEach((snapshot) => {
+      let output = "";
+      snapshot.forEach((acct) => {
+        output += `${acct.name}:$${acct.balance} | `;
+      });
+      console.log(output);
+    });
+  }
+  DOMTextVisualization(dataModel) {
+    dataModel.forEach((snapshot) => {
+      let output = "";
+      snapshot.forEach((acct) => {
+        output += `${acct.name}:$${acct.balance} | `;
+      });
+
+      const outputDiv = document.querySelector("#outputDiv");
+      outputDiv.innerHTML = output;
+    });
+  }
+
+  SetupSampleScenario() {
+    const newAccount = document.createElement("custom-account");
+    this.querySelector("#accountsContainer").appendChild(newAccount);
+    newAccount.querySelector("#nameinput").value = "Demo 1";
+    newAccount.querySelector("#startbalanceinput").value = "1000";
+    newAccount.querySelector("#interestrateinput").value = "12";
+    newAccount.querySelector("#paymentinput").value = "100";
+  }
+}
+
+// Define the custom element
+customElements.define("custom-account", Account);
+customElements.define("debt-manager", DebtManager);
+
     </script>
 </body>
 </html>
+
 
 
 
